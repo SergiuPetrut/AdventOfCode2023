@@ -26,7 +26,7 @@ def get_seed_location(seed):
                     difference = sourceRangeStart - destinationRangeStart
                     seed = seed - difference
                     break
-    return seed
+    return int(seed)
 def get_mapValues(position):
     mapValues = re.findall(r'\d+', holdValues[position]) # Get values from map
     return mapValues
@@ -45,10 +45,44 @@ def scan_seeds(start,stop, lowValue):
         elif lowValue > location:
             print(f"Found new shortest location: {location}")
             lowValue = location
-        else:
-            print("Stopping scan")
-            return lowValue
+
     return lowValue
+# 7911904 // 7875970 // 7873367 (to high)
+def find_best_distance(start, length,end):
+    seedsLocations = []
+    seedsNums = []
+    k = 0.0
+    fragments = 1000
+    procent = 1 / (fragments-1)
+    for i in range(0,fragments):
+        if k > 0.98:
+            k = 1
+        seedsLocations.append(get_seed_location(start + int(length * k)))
+        seedsNums.append(start + int(length * k))
+        k += procent
+        
+    lowestLocationIndex = seedsLocations.index(min(seedsLocations))
+    if lowestLocationIndex > 0 and lowestLocationIndex < 9:
+        if seedsLocations[lowestLocationIndex-1] > seedsLocations[lowestLocationIndex+1]:
+            endSeed = seedsNums[lowestLocationIndex+1]
+        else:
+            endSeed = seedsNums[lowestLocationIndex-1]
+    elif lowestLocationIndex == 0:
+        endSeed = seedsNums[1] # 10%
+    else:
+        endSeed = seedsNums[8] # 20%
+
+    print(f"Quick scan for locations (range {start} to {end} ({length} length))")
+    print("Seeds:",end="")
+    for i in range(0,fragments):
+        print(f" {i*100/(fragments-1)}% - {seedsNums[i]} ",end="|")
+    print("\nLocations:",end="")
+    for i in range(0,fragments):
+        print(f" {i*100/(fragments-1)}% - {seedsLocations[i]} ",end="|")    
+
+    print(f"\nChosing distance from {seedsNums[lowestLocationIndex]} to {endSeed} (Locations {get_seed_location(seedsNums[lowestLocationIndex])} to {get_seed_location(endSeed)})")
+    return seedsNums[lowestLocationIndex], endSeed, seedsLocations[lowestLocationIndex]
+
 
 for line in lines:
     if line.find(maps[position]) != -1:
@@ -77,42 +111,18 @@ while pos < len(seedsRanges):
     firstLocation = get_seed_location(start)
     middleLocation = get_seed_location(end-length//2)
     endLocation = get_seed_location(end)
-    print(f"Quick scan for locations (range {start} to {end})")
-    print(f"0% - {firstLocation} ({len(str(firstLocation))}) 25% - {get_seed_location(start+length//4)} ({len(str(get_seed_location(start+length//4)))}) 50% - {middleLocation} ({len(str(middleLocation))}) 75% - {get_seed_location(end-length//4)} ({len(str(get_seed_location(end-length//4)))}) 100% - {endLocation} ({len(str(endLocation))})")
-    half = None
-    if firstLocation < middleLocation:
-        half = 1
-        quarterLocation = get_seed_location(start+length//4)
-        quarterSeed = start+length//4
-    else:
-        half = 2
-        quarterLocation = get_seed_location(end-length//4)
-        quarterSeed = end-length//4
-    print(f"Chosing {half} half")
-    if half == 1:
-        if quarterLocation > firstLocation:
-            startSeed = start
-            endSeed = start+length//4
-            startScan = "0%"
-            endScan = "25%"
-        else:
-            startSeed = start+length//4
-            endSeed = end-length//2
-            startScan = "25%"
-            endScan = "50%"
-    else:
-        if quarterLocation < endLocation:
-            startSeed = end-length//4
-            endSeed = end-length//2
-            startScan = "50%"
-            endScan = "75%"
-        else:
-            startSeed = end
-            endSeed = end-length//4
-            startScan = "75%"
-            endScan = "100%"
-    print(f"Chosing distance from {startScan} to {endScan} ({startSeed} to {endSeed})")
-    scan_seeds(startSeed, endSeed, quarterLocation)
+    startSeed, endSeed, lowestLocation =  find_best_distance(start,length,end)
+    while abs(startSeed - endSeed) > 500 :
+        print("Trying to find shorter range")
+        startSeed, endSeed, lowestLocation =  find_best_distance(start,length,end)
+        start = startSeed
+        end = endSeed
+        length = abs(end-start)
+    lowestLocation = scan_seeds(startSeed, endSeed, lowestLocation)
+    if lowestLocationNum == None:
+        lowestLocationNum = lowestLocation
+    elif lowestLocationNum > lowestLocation:
+        lowestLocationNum = lowestLocation
 
 def get_map_values(index):
     destinationRangeStart = int(mapValues[index])
