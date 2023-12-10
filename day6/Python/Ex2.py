@@ -21,12 +21,10 @@ beatRecord = 0
 for buttonHold in range(1,raceTime): # Going thru each button hold
     speed = 0
     distanceTraveled = 0
-    speed += buttonHold
-    for Travel in range(abs(raceTime-buttonHold)):
-        distanceTraveled += speed
-        if distanceTraveled > raceDistance:
-            beatRecord += 1
-            break
+    speed += buttonHold # Significatnly shorter the time for execution by eliminating the for loops
+    distanceTraveled += speed * abs(raceTime-buttonHold)
+    if distanceTraveled > raceDistance:
+        beatRecord += 1
 result *= beatRecord
 print(f"Record could be beated in {beatRecord} different ways")
 

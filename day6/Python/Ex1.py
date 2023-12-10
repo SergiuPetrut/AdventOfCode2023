@@ -1,3 +1,4 @@
+# Could take optimisations from Ex2.py
 import re
 
 file = open("races.txt","r") # Open file in read-mode
