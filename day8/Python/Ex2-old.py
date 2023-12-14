@@ -26,6 +26,7 @@ while index < len(lines):
 print(currentPos)
 stopFlag = True
 while stopFlag:
+    skip = None
     for direction in navigation:
         steps += 1
         for currentPosIndex, position in enumerate(currentPos):
@@ -37,9 +38,9 @@ while stopFlag:
                 index = lines.find(f"{position} = (")
                 pos = index + 12            
             nextCurrentPos = lines[pos:pos + 3]
-            #print(f"{direction} - {position} --> {nextCurrentPos} (step: {steps})",end=", ")
+            print(f"{direction} - {position} --> {nextCurrentPos} (step: {steps})",end=", ")
             position = nextCurrentPos
             currentPos[currentPosIndex] = nextCurrentPos
-        #print("")
+        print("")
     stopFlag = any(check[2] != "Z" for check in currentPos)
 print(f"Result: {steps}")
